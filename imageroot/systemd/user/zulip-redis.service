@@ -1,0 +1,32 @@
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+[Unit]
+Description=Podman  zulip-redis.service
+BindsTo=zulip.service
+After=zulip.service postgresql-app.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+EnvironmentFile=-%S/state/smarthost.env
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/zulip-redis.pid %t/zulip-redis.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-redis.pid \
+    --cidfile %t/zulip-redis.ctr-id --cgroups=no-conmon \
+    --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-redis \
+    --volume zulip-redis-data:/data:z \
+    ${REDIS_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-redis.ctr-id -t 10
+ExecReload=/usr/bin/podman kill -s HUP zulip-redis
+SyslogIdentifier=%u
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/zulip-redis.ctr-id
+PIDFile=%t/zulip-redis.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

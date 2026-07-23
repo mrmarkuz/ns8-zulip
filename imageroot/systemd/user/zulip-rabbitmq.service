@@ -1,0 +1,34 @@
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+[Unit]
+Description=Podman  zulip-rabbitmq.service
+BindsTo=zulip.service
+After=zulip.service postgresql-app.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+EnvironmentFile=-%S/state/smarthost.env
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/zulip-rabbitmq.pid %t/zulip-rabbitmq.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-rabbitmq.pid \
+    --cidfile %t/zulip-rabbitmq.ctr-id --cgroups=no-conmon \
+    --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-rabbitmq \
+    --volume zulip-rabbitmq:/var/lib/rabbitmq:z \
+    --env RABBITMQ_DEFAULT_USER=zulip \
+    --env RABBITMQ_PASSWORD=zulip \
+    ${RABBITMQ_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-rabbitmq.ctr-id -t 10
+ExecReload=/usr/bin/podman kill -s HUP zulip-rabbitmq
+SyslogIdentifier=%u
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/zulip-rabbitmq.ctr-id
+PIDFile=%t/zulip-rabbitmq.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

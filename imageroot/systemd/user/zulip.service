@@ -10,8 +10,8 @@
 
 [Unit]
 Description=Podman zulip.service
-Requires=postgresql-app.service zulip-app.service
-Before=postgresql-app.service zulip-app.service
+Requires=postgresql-app.service zulip-memcached.service zulip-rabbitmq.service zulip-redis.service zulip-app.service
+Before=postgresql-app.service zulip-memcached.service zulip-rabbitmq.service zulip-redis.service zulip-app.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n

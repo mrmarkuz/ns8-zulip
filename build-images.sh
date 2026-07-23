@@ -38,7 +38,6 @@ buildah add "${container}" ui/dist /ui
 # Select you image(s) with the label org.nethserver.images
 # ghcr.io/xxxxx is the GitHub container registry or your own registry or docker.io for Docker Hub
 # The image tag is set to latest by default, but can be overridden with the IMAGETAG environment variable
-# --label="org.nethserver.images=docker.io/mariadb:10.11.5 docker.io/roundcube/roundcubemail:1.6.12-apache"
 # rootfull=0 === rootless container
 # tcp-ports-demand=1 number of tcp Port to reserve , 1 is the minimum, can be udp or tcp
 buildah config --entrypoint=/ \
@@ -46,7 +45,7 @@ buildah config --entrypoint=/ \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
     --label="org.nethserver.min-core=3.12.4-0" \
-    --label="org.nethserver.images=docker.io/postgres:17.10-alpine docker.io/nginx:1.30.0-alpine" \
+    --label="org.nethserver.images=docker.io/postgres:17.10-alpine docker.io/memcached:1.6.45-alpine docker.io/rabbitmq:4.2.9 docker.io/redis:8.8.0-alpine ghcr.io/zulip/zulip-server:12.1-0" \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"

@@ -6,7 +6,7 @@
 [Unit]
 Description=Podman  zulip-app.service
 BindsTo=zulip.service
-After=zulip.service postgresql-app.service
+After=zulip.service postgresql-app.service zulip-memcached.service zulip-rabbitmq.service zulip-redis.service 
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
@@ -21,11 +21,12 @@ ExecStartPre=-runagent discover-smarthost
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-app.pid \
     --cidfile %t/zulip-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-app \
-    --volume zulip-app:/var/www/html/:Z \
-    --volume ./config:/tmp:Z \
-    --env=NGINX_* \
-    --env 'CONFIG_DATABASE_URI="postgresql://postgres:Nethesis,1234@127.0.0.1:5432/zulip"' \
-    ${NGINX_IMAGE}
+    --volume zulip-data:/data:z \
+    --env SETTING_REMOTE_POSTGRES_HOST=postgresql-app \
+    --env SETTING_MEMCACHED_LOCATION=zulip-memcached:11211 \
+    --env SETTING_RABBITMQ_HOST=zulip-zulip-rabbitmq \
+    --env SETTING_REDIS_HOST=zulip-redis \
+    ${ZULIP_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-app.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP zulip-app
 SyslogIdentifier=%u
