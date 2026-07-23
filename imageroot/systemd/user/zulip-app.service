@@ -26,7 +26,7 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-app.pid \
     --env SETTING_MEMCACHED_LOCATION=zulip-memcached:11211 \
     --env SETTING_RABBITMQ_HOST=zulip-zulip-rabbitmq \
     --env SETTING_REDIS_HOST=zulip-redis \
-    ${ZULIP_IMAGE}
+    ${ZULIP_SERVER_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-app.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP zulip-app
 SyslogIdentifier=%u
