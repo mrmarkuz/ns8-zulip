@@ -1,0 +1,37 @@
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+[Unit]
+Description=Podman  zulip-app.service
+BindsTo=zulip.service
+After=zulip.service postgresql-app.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+EnvironmentFile=-%S/state/smarthost.env
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/mkdir -p config
+ExecStartPre=/bin/rm -f %t/zulip-app.pid %t/zulip-app.ctr-id
+ExecStartPre=-runagent discover-smarthost
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-app.pid \
+    --cidfile %t/zulip-app.ctr-id --cgroups=no-conmon \
+    --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-app \
+    --volume zulip-app:/var/www/html/:Z \
+    --volume ./config:/tmp:Z \
+    --env=NGINX_* \
+    --env 'CONFIG_DATABASE_URI="postgresql://postgres:Nethesis,1234@127.0.0.1:5432/zulip"' \
+    ${NGINX_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-app.ctr-id -t 10
+ExecReload=/usr/bin/podman kill -s HUP zulip-app
+SyslogIdentifier=%u
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/zulip-app.ctr-id
+PIDFile=%t/zulip-app.pid
+Type=forking
+
+[Install]
+WantedBy=default.target
