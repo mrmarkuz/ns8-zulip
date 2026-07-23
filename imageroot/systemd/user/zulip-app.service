@@ -22,6 +22,9 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-app.pid \
     --cidfile %t/zulip-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-app \
     --volume zulip-data:/data:z \
+    --env SETTING_EXTERNAL_HOST=${TRAEFIK_HOST} \
+    --env SETTING_ZULIP_ADMINISTRATOR=admin@${TRAEFIK_HOST} \
+    --env SETTING_ZULIP__POSTGRES_PASSWORD=zulip \
     --env SETTING_REMOTE_POSTGRES_HOST=postgresql-app \
     --env SETTING_MEMCACHED_LOCATION=zulip-memcached:11211 \
     --env SETTING_RABBITMQ_HOST=zulip-zulip-rabbitmq \
