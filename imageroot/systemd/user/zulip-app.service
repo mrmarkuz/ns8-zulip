@@ -6,7 +6,7 @@
 [Unit]
 Description=Podman  zulip-app.service
 BindsTo=zulip.service
-After=zulip.service postgresql-app.service zulip-memcached.service zulip-rabbitmq.service zulip-redis.service 
+After=zulip.service postgresql-app.service zulip-memcached.service zulip-rabbitmq.service zulip-redis.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
@@ -18,16 +18,23 @@ TimeoutStopSec=70
 ExecStartPre=/bin/mkdir -p config
 ExecStartPre=/bin/rm -f %t/zulip-app.pid %t/zulip-app.ctr-id
 ExecStartPre=-runagent discover-smarthost
+ExecStartPre=-getip
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-app.pid \
     --cidfile %t/zulip-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-app \
     --volume zulip-data:/data:z \
+    --env-file=zulip-app.env \
+    --env-file=smarthost.env \
     --env SETTING_EXTERNAL_HOST=${TRAEFIK_HOST} \
     --env SETTING_ZULIP_ADMINISTRATOR=admin@${TRAEFIK_HOST} \
-    --env SETTING_ZULIP__POSTGRES_PASSWORD=zulip \
+    --env SECRETS_postgres_password=zulip \
+    --env SECRETS_rabbitmq_password=zulip \
+    --env SECRETS_memcached_password=zulip \
+    --env SECRETS_redis_password=zulip \
+    --env SECRETS_secret_key=zulip \
     --env SETTING_REMOTE_POSTGRES_HOST=postgresql-app \
     --env SETTING_MEMCACHED_LOCATION=zulip-memcached:11211 \
-    --env SETTING_RABBITMQ_HOST=zulip-zulip-rabbitmq \
+    --env SETTING_RABBITMQ_HOST=zulip-rabbitmq \
     --env SETTING_REDIS_HOST=zulip-redis \
     ${ZULIP_SERVER_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-app.ctr-id -t 10

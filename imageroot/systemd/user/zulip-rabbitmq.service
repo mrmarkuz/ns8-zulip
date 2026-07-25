@@ -21,7 +21,7 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-rabbitmq.pid \
     --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-rabbitmq \
     --volume zulip-rabbitmq:/var/lib/rabbitmq:z \
     --env RABBITMQ_DEFAULT_USER=zulip \
-    --env RABBITMQ_PASSWORD=zulip \
+    --env RABBITMQ_DEFAULT_PASS=zulip \
     ${RABBITMQ_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-rabbitmq.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP zulip-rabbitmq

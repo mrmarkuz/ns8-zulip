@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Get host IP
+echo "LOADBALANCER_IPS=$(/usr/bin/hostname -I | cut -f1 -d' ')" > zulip-app.env

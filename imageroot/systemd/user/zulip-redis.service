@@ -19,8 +19,8 @@ ExecStartPre=/bin/rm -f %t/zulip-redis.pid %t/zulip-redis.ctr-id
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/zulip-redis.pid \
     --cidfile %t/zulip-redis.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/zulip.pod-id --replace -d --name  zulip-redis \
-    --volume zulip-redis-data:/data:z \
-    ${REDIS_IMAGE}
+    --volume zulip-redis:/data:z \
+    ${REDIS_IMAGE} /usr/local/bin/docker-entrypoint.sh --requirepass zulip
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/zulip-redis.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP zulip-redis
 SyslogIdentifier=%u
